@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+>
+  <url>
+    <loc>https://brunolimacorretor.com.br/</loc>
+    <lastmod>2026-07-31</lastmod>
+    <image:image>
+      <image:loc>https://brunolimacorretor.com.br/assets/hero-moradia-v2.webp</image:loc>
+      <image:title>Imóveis em Itu, Salto e Indaiatuba</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://brunolimacorretor.com.br/assets/jardim_tropical.png</image:loc>
+      <image:title>Jardim Tropical em Salto</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://brunolimacorretor.com.br/assets/Jardim%20Mirante.png</image:loc>
+      <image:title>Jardim Mirante</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://brunolimacorretor.com.br/assets/Ilha%20de%20Malta.webp</image:loc>
+      <image:title>Ilha de Malta em Itu</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://brunolimacorretor.com.br/assets/parquedasaguasindaiatuba.png</image:loc>
+      <image:title>Parque das Águas em Indaiatuba</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://brunolimacorretor.com.br/assets/estacaoreal.png</image:loc>
+      <image:title>Estação Real Garden Club em Itu</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://brunolimacorretor.com.br/assets/bellaroma.png</image:loc>
+      <image:title>Bella Roma em Itu</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://brunolimacorretor.com.br/assets/maxim.png</image:loc>
+      <image:title>Máxim Home Clube em Itu</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://brunolimacorretor.com.br/assets/belaverona.png</image:loc>
+      <image:title>Bella Verona em Itu</image:title>
+    </image:image>
+  </url>
+</urlset>
