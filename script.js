@@ -96,12 +96,14 @@ const showToast = (message) => {
 
 const closeMenu = () => {
   nav.classList.remove('open');
+  document.body.classList.remove('menu-open');
   toggle.setAttribute('aria-expanded', 'false');
   toggle.setAttribute('aria-label', 'Abrir menu');
 };
 
 toggle?.addEventListener('click', () => {
   const open = nav.classList.toggle('open');
+  document.body.classList.toggle('menu-open', open);
   toggle.setAttribute('aria-expanded', String(open));
   toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
 });
@@ -195,6 +197,10 @@ modal?.addEventListener('click', (event) => {
   if (event.target === modal) closeModal();
 });
 modal?.addEventListener('cancel', () => document.body.classList.remove('modal-open'));
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && nav?.classList.contains('open')) closeMenu();
+});
 
 document.getElementById('contact-form')?.addEventListener('submit', (event) => {
   event.preventDefault();
