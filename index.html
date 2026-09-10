@@ -599,7 +599,7 @@
         <div class="footer-nav">
           <div><small>Navegação</small><a href="#sobre">Sobre</a><a href="#imoveis">Imóveis</a><a href="#metodo">Atendimento</a><a href="#duvidas">Dúvidas</a></div>
           <div><small>Contato</small><a href="tel:+5511970467579">+55 11 97046-7579</a><a href="https://wa.me/5511970467579" target="_blank" rel="noopener">Conversar pelo WhatsApp ↗</a></div>
-          <div><small>Atendimento</small><a href="#contato">Itu, Salto e Indaiatuba</a><a href="#contato">Fale com Bruno ↗</a></div>
+          <div><small>Atendimento</small><a href="#contato">Itu, Salto e Indaiatuba</a><a href="#contato">Fale com Bruno ↗</a><a href="admin.html">Área administrativa</a></div>
         </div>
       </div>
       <div class="container footer-bottom">
@@ -615,7 +615,12 @@
 
     <dialog class="property-modal" id="property-modal">
       <button class="modal-close" aria-label="Fechar detalhes">×</button>
-      <div class="modal-image"><img src="" alt="" /></div>
+      <div class="modal-gallery">
+        <div class="modal-image"><img src="" alt="" /></div>
+        <button class="modal-gallery-prev" type="button" aria-label="Imagem anterior">←</button>
+        <button class="modal-gallery-next" type="button" aria-label="Próxima imagem">→</button>
+        <span class="modal-gallery-count" aria-live="polite"></span>
+      </div>
       <div class="modal-copy">
         <p class="kicker modal-place"></p>
         <h2 class="modal-title"></h2>
@@ -626,6 +631,7 @@
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="properties-data.js" defer></script>
     <script src="script.js" defer></script>
   </body>
 </html>

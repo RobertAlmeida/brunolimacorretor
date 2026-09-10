@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#0d1c17" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="admin.css" />
+    <title>Área administrativa | Bruno Lima Imóveis</title>
+  </head>
+  <body>
+    <main>
+      <section class="login-screen" id="login-screen">
+        <form class="login-card" id="login-form">
+          <a href="index.html" class="admin-brand" aria-label="Voltar para o site">
+            <img src="assets/logo.png?v=3" alt="Bruno Lima Imóveis" />
+          </a>
+          <p class="eyebrow">Área restrita</p>
+          <h1>Gerencie seus imóveis</h1>
+          <p class="login-copy">Entre para adicionar, editar ou remover imóveis e suas imagens.</p>
+          <label>Senha
+            <div class="password-field">
+              <input type="password" name="password" id="password" autocomplete="current-password" required autofocus />
+              <button type="button" id="toggle-password" aria-label="Mostrar senha">Mostrar</button>
+            </div>
+          </label>
+          <p class="form-error" id="login-error" role="alert"></p>
+          <button class="primary-button" type="submit">Entrar <span>→</span></button>
+          <a class="back-link" href="index.html">← Voltar para o site</a>
+        </form>
+      </section>
+
+      <section class="admin-shell" id="admin-shell" hidden>
+        <header class="admin-header">
+          <a href="index.html" class="admin-brand"><img src="assets/logo.png?v=3" alt="Bruno Lima Imóveis" /></a>
+          <div class="header-actions">
+            <a class="secondary-button" href="index.html#imoveis" target="_blank">Ver site ↗</a>
+            <button class="text-button" type="button" id="logout-button">Sair</button>
+          </div>
+        </header>
+
+        <div class="admin-layout">
+          <aside class="catalog-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">Catálogo</p><h1>Imóveis</h1></div>
+              <button class="primary-button compact" type="button" id="new-property">+ Adicionar</button>
+            </div>
+            <p class="catalog-count" id="catalog-count"></p>
+            <p class="storage-note">As alterações ficam salvas neste navegador.</p>
+            <div class="property-list" id="property-list"></div>
+          </aside>
+
+          <section class="editor-panel">
+            <div class="editor-empty" id="editor-empty">
+              <span>⌂</span>
+              <h2>Selecione um imóvel</h2>
+              <p>Escolha um item ao lado para editar ou adicione um novo imóvel.</p>
+            </div>
+
+            <form class="property-form" id="property-form" hidden>
+              <div class="form-title-row">
+                <div><p class="eyebrow" id="form-mode">Novo imóvel</p><h2 id="form-title">Adicionar imóvel</h2></div>
+                <button class="danger-button" type="button" id="delete-property" hidden>Remover imóvel</button>
+              </div>
+
+              <div class="form-grid">
+                <label class="wide">Nome do imóvel *<input name="title" type="text" maxlength="80" required placeholder="Ex.: Residencial das Flores" /></label>
+                <label>Localização *<input name="place" type="text" maxlength="100" required placeholder="Ex.: Itu · São Paulo" /></label>
+                <label>Preço *<input name="price" type="text" maxlength="40" required placeholder="Ex.: R$ 250.000,00" /></label>
+                <label>Selo do anúncio<input name="badge" type="text" maxlength="40" placeholder="Ex.: Lançamento" /></label>
+                <label>Enquadramento da imagem
+                  <select name="fit"><option value="cover">Preencher o espaço (foto)</option><option value="contain">Exibir inteira (logo/arte)</option></select>
+                </label>
+                <fieldset class="wide category-field">
+                  <legend>Categorias *</legend>
+                  <label><input type="checkbox" name="categories" value="lote" /> Loteamento</label>
+                  <label><input type="checkbox" name="categories" value="apartamento" /> Apartamento</label>
+                  <label><input type="checkbox" name="categories" value="lancamento" /> Lançamento</label>
+                </fieldset>
+                <label class="wide">Descrição *<textarea name="description" rows="5" maxlength="800" required placeholder="Apresente os principais diferenciais do imóvel."></textarea></label>
+                <label class="wide">Características *<input name="specs" type="text" maxlength="250" required placeholder="Separe por vírgulas: 2 dormitórios, varanda, piscina" /><small>Separe cada característica com uma vírgula.</small></label>
+              </div>
+
+              <section class="image-editor">
+                <div class="image-heading"><div><h3>Imagens</h3><p>A primeira imagem é usada como capa do anúncio.</p></div></div>
+                <div class="image-inputs">
+                  <label class="upload-button">Selecionar imagens<input id="image-files" type="file" accept="image/jpeg,image/png,image/webp" multiple /></label>
+                  <span>ou</span>
+                  <div class="url-field"><input id="image-url" type="url" placeholder="Cole a URL de uma imagem" /><button type="button" id="add-image-url">Adicionar URL</button></div>
+                </div>
+                <p class="upload-status" id="upload-status" role="status"></p>
+                <div class="image-list" id="image-list"></div>
+              </section>
+
+              <p class="form-error" id="form-error" role="alert"></p>
+              <div class="form-actions">
+                <button class="primary-button" type="submit">Salvar alterações <span>→</span></button>
+                <button class="secondary-button" type="button" id="cancel-edit">Cancelar</button>
+              </div>
+            </form>
+          </section>
+        </div>
+      </section>
+    </main>
+    <div class="toast" id="admin-toast" role="status" aria-live="polite"></div>
+    <script src="properties-data.js"></script>
+    <script src="admin.js"></script>
+  </body>
+</html>

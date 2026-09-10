@@ -211,10 +211,16 @@ h2 { font-size: clamp(43px, 5vw, 72px); }
 @keyframes modalIn { from { opacity: 0; transform: translateY(18px); } }
 .property-modal::backdrop { background: rgba(5,13,10,.78); backdrop-filter: blur(5px); }
 .modal-close { position: absolute; z-index: 3; top: 13px; right: 13px; width: 38px; height: 38px; border: 0; border-radius: 50%; background: rgba(13,28,23,.82); color: white; cursor: pointer; font-size: 24px; }
-.modal-image { min-height: 480px; }
+.modal-gallery { position: relative; min-width: 0; background: #e5e1d8; }
+.modal-image { min-height: 480px; height: 100%; }
 .modal-image img { width: 100%; height: 100%; object-fit: cover; }
 .modal-image.is-contain { background: #f2f0ea; padding: 20px; }
 .modal-image.is-contain img { object-fit: contain; }
+.modal-gallery-prev, .modal-gallery-next { position: absolute; z-index: 2; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border: 0; border-radius: 50%; color: white; background: rgba(13,28,23,.78); cursor: pointer; }
+.modal-gallery-prev { left: 15px; }
+.modal-gallery-next { right: 15px; }
+.modal-gallery-count { position: absolute; z-index: 2; right: 16px; bottom: 14px; min-width: 42px; padding: 5px 9px; color: white; background: rgba(13,28,23,.75); text-align: center; font-size: 9px; letter-spacing: .12em; }
+.modal-gallery-count:empty { display: none; }
 .modal-copy { padding: 55px 42px 38px; display: flex; flex-direction: column; }
 .modal-copy h2 { font-size: 42px; margin-bottom: 20px; }
 .modal-description { color: var(--muted); font-size: 12px; line-height: 1.8; }
@@ -222,6 +228,7 @@ h2 { font-size: clamp(43px, 5vw, 72px); }
 .modal-specs span { padding: 13px 4px; font-size: 10px; }
 .modal-bottom { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 15px; }
 .modal-bottom strong { font-family: var(--font-serif); font-size: 18px; font-weight: 500; }
+.property-empty { grid-column: 1 / -1; padding: 55px 20px; border: 1px solid var(--line); color: var(--muted); text-align: center; }
 
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .75s ease, transform .75s ease; }
 .reveal.visible { opacity: 1; transform: translateY(0); }
@@ -290,6 +297,7 @@ h2 { font-size: clamp(43px, 5vw, 72px); }
   .footer-nav > div:nth-child(2) { grid-row: 2; grid-column: 1 / -1; }
   .footer-bottom { flex-direction: column; gap: 8px; }
   .property-modal[open] { display: block; }
+  .modal-gallery { height: 34vh; }
   .modal-image { min-height: 260px; height: 34vh; }
   .modal-copy { padding: 35px 25px 28px; }
   .modal-copy h2 { font-size: 36px; }
