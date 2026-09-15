@@ -92,7 +92,10 @@
 
   const load = async () => {
     const snapshot = await database().collection(COLLECTION).get();
-    if (snapshot.empty) return loadLegacyCatalog();
+    if (snapshot.empty) {
+      const initialCatalog = loadLegacyCatalog();
+      return save(initialCatalog);
+    }
     return snapshot.docs
       .map((document) => ({ ...normalize({ id: document.id, ...document.data() }), position: document.data().position ?? 9999 }))
       .sort((a, b) => a.position - b.position)
