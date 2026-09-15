@@ -1,5 +1,6 @@
 const ACCESS_PASSWORD = 'bruno';
 const SESSION_KEY = 'bruno-lima-admin-authenticated';
+const MAX_BASE64_IMAGE_SIZE = 700 * 1024;
 
 const loginScreen = document.getElementById('login-screen');
 const adminShell = document.getElementById('admin-shell');
@@ -203,14 +204,24 @@ const loadImage = (src) => new Promise((resolve, reject) => {
 const compressImage = async (file) => {
   const original = await readFile(file);
   const image = await loadImage(original);
-  const maxSize = 1400;
-  const ratio = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
+  const maxSize = 1200;
+  let ratio = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
   const canvas = document.createElement('canvas');
-  canvas.width = Math.max(1, Math.round(image.naturalWidth * ratio));
-  canvas.height = Math.max(1, Math.round(image.naturalHeight * ratio));
-  canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
-  const compressed = canvas.toDataURL('image/webp', 0.8);
-  return compressed.length < original.length ? compressed : original;
+  let quality = 0.78;
+
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * ratio));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * ratio));
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const compressed = canvas.toDataURL('image/webp', quality);
+    if (compressed.length <= MAX_BASE64_IMAGE_SIZE) return compressed;
+    if (quality > 0.5) quality -= 0.1;
+    else ratio *= 0.82;
+  }
+
+  throw new Error(`A imagem ${file.name} não pôde ser reduzida para o limite permitido.`);
 };
 
 document.getElementById('image-files').addEventListener('change', async (event) => {
@@ -252,7 +263,7 @@ const persist = async () => {
     return true;
   } catch (error) {
     console.error('Erro ao salvar no Firebase:', error);
-    const permissionDenied = error?.code === 'permission-denied' || error?.code === 'storage/unauthorized';
+    const permissionDenied = error?.code === 'permission-denied';
     document.getElementById('form-error').textContent = permissionDenied
       ? 'O Firebase recusou a gravação. Verifique as regras do Firestore e do Storage.'
       : 'Não foi possível salvar no Firebase. Verifique sua conexão e tente novamente.';

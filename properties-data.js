@@ -77,7 +77,6 @@
   });
 
   const database = () => firebase.firestore();
-  const fileStorage = () => firebase.storage();
 
   const loadLegacyCatalog = () => {
     try {
@@ -96,42 +95,33 @@
       const initialCatalog = loadLegacyCatalog();
       return save(initialCatalog);
     }
-    return snapshot.docs
-      .map((document) => ({ ...normalize({ id: document.id, ...document.data() }), position: document.data().position ?? 9999 }))
+    const loaded = await Promise.all(snapshot.docs.map(async (document) => {
+      const data = document.data();
+      const imagesSnapshot = await document.ref.collection('images').get();
+      const storedImages = imagesSnapshot.docs
+        .map((imageDocument) => imageDocument.data())
+        .sort((a, b) => a.position - b.position)
+        .map(({ src, alt }) => ({ src, alt }));
+      return {
+        ...normalize({ id: document.id, ...data, images: storedImages.length ? storedImages : data.images }),
+        position: data.position ?? 9999
+      };
+    }));
+    return loaded
       .sort((a, b) => a.position - b.position)
       .map(({ position, ...property }) => property);
   };
 
-  const uploadImage = async (image, propertyId, index) => {
-    if (!image.src.startsWith('data:')) return image;
-    const response = await fetch(image.src);
-    const blob = await response.blob();
-    const extension = blob.type === 'image/png' ? 'png' : blob.type === 'image/jpeg' ? 'jpg' : 'webp';
-    const path = `properties/${propertyId}/${Date.now()}-${index}.${extension}`;
-    const reference = fileStorage().ref(path);
-    await reference.put(blob, { contentType: blob.type });
-    return { src: await reference.getDownloadURL(), alt: image.alt || '' };
-  };
-
   const save = async (properties) => {
-    const prepared = [];
-    for (const property of properties) {
-      const normalized = normalize(property);
-      normalized.images = await Promise.all(
-        normalized.images.map((image, index) => uploadImage(image, normalized.id, index))
-      );
-      prepared.push(normalized);
-    }
+    const prepared = properties.map(normalize);
 
     const collection = database().collection(COLLECTION);
     const current = await collection.get();
     const ids = new Set(prepared.map((property) => property.id));
     const batch = database().batch();
-    current.docs.forEach((document) => {
-      if (!ids.has(document.id)) batch.delete(document.ref);
-    });
+    const removedDocuments = current.docs.filter((document) => !ids.has(document.id));
     prepared.forEach((property, position) => {
-      const { id, ...data } = property;
+      const { id, images, ...data } = property;
       batch.set(collection.doc(id), {
         ...data,
         position,
@@ -139,6 +129,32 @@
       });
     });
     await batch.commit();
+
+    for (const document of removedDocuments) {
+      const imagesSnapshot = await document.ref.collection('images').get();
+      await Promise.all(imagesSnapshot.docs.map((imageDocument) => imageDocument.ref.delete()));
+      await document.ref.delete();
+    }
+
+    for (const property of prepared) {
+      const imagesCollection = collection.doc(property.id).collection('images');
+      const existingImages = await imagesCollection.get();
+      const currentImageIds = new Set(
+        property.images.map((image, position) => `image-${String(position).padStart(3, '0')}`)
+      );
+      const imageWrites = existingImages.docs
+        .filter((imageDocument) => !currentImageIds.has(imageDocument.id))
+        .map((imageDocument) => imageDocument.ref.delete());
+      property.images.forEach((image, position) => {
+        imageWrites.push(imagesCollection.doc(`image-${String(position).padStart(3, '0')}`).set({
+          src: image.src,
+          alt: image.alt || property.title,
+          position
+        }));
+      });
+      await Promise.all(imageWrites);
+    }
+
     localStorage.removeItem(LEGACY_STORAGE_KEY);
     return prepared;
   };

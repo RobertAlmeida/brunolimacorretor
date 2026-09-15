@@ -12,11 +12,11 @@ service cloud.firestore {
       let data = request.resource.data;
       return data.keys().hasOnly([
           'title', 'place', 'price', 'badge', 'description', 'categories',
-          'specs', 'images', 'fit', 'position', 'updatedAt'
+          'specs', 'fit', 'position', 'updatedAt'
         ])
         && data.keys().hasAll([
           'title', 'place', 'price', 'badge', 'description', 'categories',
-          'specs', 'images', 'fit', 'position', 'updatedAt'
+          'specs', 'fit', 'position', 'updatedAt'
         ])
         && data.title is string && data.title.size() > 0 && data.title.size() <= 80
         && data.place is string && data.place.size() > 0 && data.place.size() <= 100
@@ -25,9 +25,28 @@ service cloud.firestore {
         && data.description is string && data.description.size() > 0 && data.description.size() <= 800
         && data.categories is list && data.categories.size() > 0 && data.categories.size() <= 3
         && data.specs is list && data.specs.size() > 0 && data.specs.size() <= 20
-        && data.images is list && data.images.size() > 0 && data.images.size() <= 20
         && data.fit in ['cover', 'contain']
         && data.position is int && data.position >= 0;
+    }
+
+    match /properties/{propertyId}/images/{imageId} {
+      allow read: if true;
+      allow create, update: if validImage();
+      allow delete: if true;
+
+      function validImage() {
+        let data = request.resource.data;
+        return data.keys().hasOnly(['src', 'alt', 'position'])
+          && data.keys().hasAll(['src', 'alt', 'position'])
+          && data.src is string
+          && data.src.size() > 0
+          && data.src.size() <= 716800
+          && data.alt is string
+          && data.alt.size() <= 120
+          && data.position is int
+          && data.position >= 0
+          && data.position < 20;
+      }
     }
   }
 }
