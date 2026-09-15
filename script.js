@@ -6,7 +6,7 @@ const modal = document.getElementById('property-modal');
 const propertyGrid = document.querySelector('.property-grid');
 const WHATSAPP_NUMBER = '5511970467579';
 
-let properties = window.PropertyCatalog.load();
+let properties = window.PropertyCatalog.clone(window.PropertyCatalog.defaults);
 let activeFilter = 'todos';
 let modalProperty = null;
 let modalImageIndex = 0;
@@ -195,11 +195,13 @@ document.getElementById('contact-form')?.addEventListener('submit', (event) => {
   showToast('Abrindo uma conversa segura no WhatsApp…');
 });
 
-window.addEventListener('storage', (event) => {
-  if (event.key === window.PropertyCatalog.STORAGE_KEY) {
-    properties = window.PropertyCatalog.load();
-    renderProperties();
-  }
-});
-
 renderProperties();
+window.PropertyCatalog.load()
+  .then((catalog) => {
+    properties = catalog;
+    renderProperties();
+  })
+  .catch((error) => {
+    console.error('Não foi possível carregar os imóveis do Firebase:', error);
+    showToast('Catálogo temporariamente indisponível. Exibindo imóveis em destaque.');
+  });

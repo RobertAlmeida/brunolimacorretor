@@ -50,7 +50,7 @@
               <button class="primary-button compact" type="button" id="new-property">+ Adicionar</button>
             </div>
             <p class="catalog-count" id="catalog-count"></p>
-            <p class="storage-note">As alterações ficam salvas neste navegador.</p>
+            <p class="storage-note">As alterações são publicadas no Firebase e aparecem para todos os visitantes.</p>
             <div class="property-list" id="property-list"></div>
           </aside>
 
@@ -107,6 +107,10 @@
       </section>
     </main>
     <div class="toast" id="admin-toast" role="status" aria-live="polite"></div>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="properties-data.js"></script>
     <script src="admin.js"></script>
   </body>

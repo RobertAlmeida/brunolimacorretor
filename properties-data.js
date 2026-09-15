@@ -1,5 +1,6 @@
 (function () {
-  const STORAGE_KEY = 'bruno-lima-imoveis-catalogo-v1';
+  const COLLECTION = 'properties';
+  const LEGACY_STORAGE_KEY = 'bruno-lima-imoveis-catalogo-v1';
 
   const defaults = [
     {
@@ -63,28 +64,81 @@
   const clone = (value) => JSON.parse(JSON.stringify(value));
 
   const normalize = (property) => ({
-    ...property,
+    id: property.id,
+    title: property.title || '',
+    place: property.place || '',
+    price: property.price || '',
+    badge: property.badge || 'Imóvel',
+    description: property.description || '',
     categories: Array.isArray(property.categories) && property.categories.length ? property.categories : ['apartamento'],
     specs: Array.isArray(property.specs) ? property.specs.filter(Boolean) : [],
     images: Array.isArray(property.images) ? property.images.filter((image) => image && image.src) : [],
     fit: property.fit === 'contain' ? 'contain' : 'cover'
   });
 
-  const load = () => {
+  const database = () => firebase.firestore();
+  const fileStorage = () => firebase.storage();
+
+  const loadLegacyCatalog = () => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) return clone(defaults);
-      const parsed = JSON.parse(stored);
-      return Array.isArray(parsed) ? parsed.map(normalize) : clone(defaults);
+      const stored = localStorage.getItem(LEGACY_STORAGE_KEY);
+      const parsed = stored ? JSON.parse(stored) : null;
+      return Array.isArray(parsed) && parsed.length ? parsed.map(normalize) : clone(defaults);
     } catch (error) {
-      console.warn('Não foi possível carregar o catálogo salvo.', error);
+      console.warn('Não foi possível migrar o catálogo local anterior.', error);
       return clone(defaults);
     }
   };
 
-  const save = (properties) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(properties.map(normalize)));
+  const load = async () => {
+    const snapshot = await database().collection(COLLECTION).get();
+    if (snapshot.empty) return loadLegacyCatalog();
+    return snapshot.docs
+      .map((document) => ({ ...normalize({ id: document.id, ...document.data() }), position: document.data().position ?? 9999 }))
+      .sort((a, b) => a.position - b.position)
+      .map(({ position, ...property }) => property);
   };
 
-  window.PropertyCatalog = { STORAGE_KEY, defaults: clone(defaults), load, save, clone };
+  const uploadImage = async (image, propertyId, index) => {
+    if (!image.src.startsWith('data:')) return image;
+    const response = await fetch(image.src);
+    const blob = await response.blob();
+    const extension = blob.type === 'image/png' ? 'png' : blob.type === 'image/jpeg' ? 'jpg' : 'webp';
+    const path = `properties/${propertyId}/${Date.now()}-${index}.${extension}`;
+    const reference = fileStorage().ref(path);
+    await reference.put(blob, { contentType: blob.type });
+    return { src: await reference.getDownloadURL(), alt: image.alt || '' };
+  };
+
+  const save = async (properties) => {
+    const prepared = [];
+    for (const property of properties) {
+      const normalized = normalize(property);
+      normalized.images = await Promise.all(
+        normalized.images.map((image, index) => uploadImage(image, normalized.id, index))
+      );
+      prepared.push(normalized);
+    }
+
+    const collection = database().collection(COLLECTION);
+    const current = await collection.get();
+    const ids = new Set(prepared.map((property) => property.id));
+    const batch = database().batch();
+    current.docs.forEach((document) => {
+      if (!ids.has(document.id)) batch.delete(document.ref);
+    });
+    prepared.forEach((property, position) => {
+      const { id, ...data } = property;
+      batch.set(collection.doc(id), {
+        ...data,
+        position,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+    await batch.commit();
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    return prepared;
+  };
+
+  window.PropertyCatalog = { defaults: clone(defaults), load, save, clone };
 })();

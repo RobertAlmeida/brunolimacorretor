@@ -1,0 +1,33 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /properties/{propertyId} {
+      allow read: if true;
+      allow create, update: if validProperty();
+      allow delete: if true;
+    }
+
+    function validProperty() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+          'title', 'place', 'price', 'badge', 'description', 'categories',
+          'specs', 'images', 'fit', 'position', 'updatedAt'
+        ])
+        && data.keys().hasAll([
+          'title', 'place', 'price', 'badge', 'description', 'categories',
+          'specs', 'images', 'fit', 'position', 'updatedAt'
+        ])
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 80
+        && data.place is string && data.place.size() > 0 && data.place.size() <= 100
+        && data.price is string && data.price.size() > 0 && data.price.size() <= 40
+        && data.badge is string && data.badge.size() <= 40
+        && data.description is string && data.description.size() > 0 && data.description.size() <= 800
+        && data.categories is list && data.categories.size() > 0 && data.categories.size() <= 3
+        && data.specs is list && data.specs.size() > 0 && data.specs.size() <= 20
+        && data.images is list && data.images.size() > 0 && data.images.size() <= 20
+        && data.fit in ['cover', 'contain']
+        && data.position is int && data.position >= 0;
+    }
+  }
+}

@@ -9,9 +9,20 @@ const editorEmpty = document.getElementById('editor-empty');
 const propertyList = document.getElementById('property-list');
 const toast = document.getElementById('admin-toast');
 
-let properties = window.PropertyCatalog.load();
+let properties = [];
+let catalogPromise = null;
 let activeId = null;
 let editingImages = [];
+
+const loadCatalog = () => {
+  if (!catalogPromise) {
+    catalogPromise = window.PropertyCatalog.load().then((catalog) => {
+      properties = catalog;
+      return catalog;
+    });
+  }
+  return catalogPromise;
+};
 
 const escapeHtml = (value = '') => String(value).replace(/[&<>'"]/g, (character) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
@@ -23,10 +34,18 @@ const showToast = (message) => {
   window.setTimeout(() => toast.classList.remove('show'), 2400);
 };
 
-const showAdmin = () => {
+const showAdmin = async () => {
   loginScreen.hidden = true;
   adminShell.hidden = false;
-  renderList();
+  document.getElementById('catalog-count').textContent = 'Carregando imóveis…';
+  try {
+    await loadCatalog();
+    renderList();
+  } catch (error) {
+    console.error('Erro ao carregar imóveis do Firebase:', error);
+    document.getElementById('catalog-count').textContent = 'Não foi possível carregar os imóveis.';
+    showToast('Falha ao conectar ao Firebase.');
+  }
 };
 
 const showLogin = () => {
@@ -36,7 +55,7 @@ const showLogin = () => {
   document.getElementById('password').focus();
 };
 
-loginForm.addEventListener('submit', (event) => {
+loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const password = new FormData(loginForm).get('password');
   if (password !== ACCESS_PASSWORD) {
@@ -46,7 +65,7 @@ loginForm.addEventListener('submit', (event) => {
   }
   document.getElementById('login-error').textContent = '';
   sessionStorage.setItem(SESSION_KEY, 'true');
-  showAdmin();
+  await showAdmin();
 });
 
 document.getElementById('toggle-password').addEventListener('click', (event) => {
@@ -227,17 +246,21 @@ document.getElementById('add-image-url').addEventListener('click', () => {
   }
 });
 
-const persist = () => {
+const persist = async () => {
   try {
-    window.PropertyCatalog.save(properties);
+    properties = await window.PropertyCatalog.save(properties);
     return true;
   } catch (error) {
-    document.getElementById('form-error').textContent = 'Não foi possível salvar. O armazenamento pode estar cheio; remova algumas imagens ou use imagens menores.';
+    console.error('Erro ao salvar no Firebase:', error);
+    const permissionDenied = error?.code === 'permission-denied' || error?.code === 'storage/unauthorized';
+    document.getElementById('form-error').textContent = permissionDenied
+      ? 'O Firebase recusou a gravação. Verifique as regras do Firestore e do Storage.'
+      : 'Não foi possível salvar no Firebase. Verifique sua conexão e tente novamente.';
     return false;
   }
 };
 
-propertyForm.addEventListener('submit', (event) => {
+propertyForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const data = new FormData(propertyForm);
   const categories = data.getAll('categories');
@@ -268,29 +291,31 @@ propertyForm.addEventListener('submit', (event) => {
 
   if (previous) properties[properties.findIndex((item) => item.id === activeId)] = property;
   else properties.push(property);
-  if (!persist()) return;
+  const submitButton = propertyForm.querySelector('[type="submit"]');
+  submitButton.disabled = true;
+  submitButton.firstChild.textContent = 'Salvando… ';
+  if (!await persist()) {
+    submitButton.disabled = false;
+    submitButton.firstChild.textContent = 'Salvar alterações ';
+    return;
+  }
+  submitButton.disabled = false;
+  submitButton.firstChild.textContent = 'Salvar alterações ';
   activeId = property.id;
   renderList();
   openEditor(property.id);
   showToast(previous ? 'Imóvel atualizado com sucesso.' : 'Imóvel adicionado com sucesso.');
 });
 
-document.getElementById('delete-property').addEventListener('click', () => {
+document.getElementById('delete-property').addEventListener('click', async () => {
   const property = properties.find((item) => item.id === activeId);
   if (!property || !window.confirm(`Remover “${property.title}” do catálogo? Esta ação não pode ser desfeita.`)) return;
   const backup = properties;
   properties = properties.filter((item) => item.id !== activeId);
-  if (!persist()) { properties = backup; return; }
+  if (!await persist()) { properties = backup; return; }
   closeEditor();
   showToast('Imóvel removido do catálogo.');
 });
 
-window.addEventListener('storage', (event) => {
-  if (event.key !== window.PropertyCatalog.STORAGE_KEY) return;
-  properties = window.PropertyCatalog.load();
-  if (activeId && !properties.some((item) => item.id === activeId)) closeEditor();
-  else renderList();
-});
-
-if (sessionStorage.getItem(SESSION_KEY) === 'true') showAdmin();
+if (sessionStorage.getItem(SESSION_KEY) === 'true') void showAdmin();
 else showLogin();
